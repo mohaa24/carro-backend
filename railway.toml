@@ -6,3 +6,9 @@ builder = "NIXPACKS"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
+startCommand = "python run.py"
+
+# Environment variables
+[env]
+DATABASE_URL = "sqlite+aiosqlite:///./carro.db"
+SECRET_KEY = "railway-secret-key-change-in-production"
