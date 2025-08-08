@@ -55,4 +55,4 @@ carro.db
 *~
 
 # Project specific
-init_db.py
+# init_db.py  # Commented out - we need this for Railway deployment
