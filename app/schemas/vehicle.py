@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import date
+from datetime import date, datetime
 import enum
 
 # Import UserSummary - using forward reference to avoid circular imports
@@ -19,8 +19,12 @@ class FuelType(str, enum.Enum):
 
 class VehicleType(str, enum.Enum):
     car = "Car"
-    motorbike = "Motorbike"
+    motorbike = "Motor Bike"
+    threeWheeler = "Three Wheeler"
     truck = "Truck"
+    farm = "Farm"
+    plant = "Plant"
+    electricBike = "Electric Bike"
     van = "Van"
     other = "Other"
 
@@ -38,47 +42,52 @@ class ImportStatus(str, enum.Enum):
     reconditioned = "Reconditioned"
 
 class VehicleCondition(str, enum.Enum):
-    excellent = "Excellent"
-    good = "Good"
-    fair = "Fair"
-    poor = "Poor"
+    used = "Used"
+    new = "New"
+    reconditioned = "Reconditioned"
+
 
 class VehicleImageOut(BaseModel):
     id: int
     url: str
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True
 
 class VehicleBase(BaseModel):
     vehicle_type: VehicleType
+    description: str
+    location: str
     title: str
     make: str
     model: str
-    variant: Optional[str] = None
     year: int
     price: float  # LKR
     mileage: int  # kilometers
     fuel_type: FuelType
     transmission: TransmissionType
     body_type: str
-    color: str
-    engine_size: float
-    doors: int
-    registration_date: Optional[date] = None
-    tax_due_date: Optional[date] = None
-    insurance_expiry: Optional[date] = None
-    location: str
-    seller_type: SellerType
-    import_status: ImportStatus
     condition: VehicleCondition
     ownership_history: int
-    description: str
-    vin: Optional[str] = None
+    #Auto populated
+    seller_type: SellerType
+    #Optional
+    variant: Optional[str] = None
+    features: Optional[List[str]] = None
+    color: Optional[str]
+    engine_size: Optional[float] = None
+    doors: Optional[int]
+    insurance_expiry: Optional[date] = None
+    import_status: Optional[ImportStatus]
+
 
 class VehicleOut(VehicleBase):
     id: int
     posted_by_id: int
+    created_at: datetime
+    updated_at: datetime
     images: List[VehicleImageOut] = []
 
     class Config:
@@ -87,7 +96,15 @@ class VehicleOut(VehicleBase):
 class VehicleCreate(VehicleBase):
     images: Optional[List[VehicleImageCreate]] = []
 
-# Define this after importing UserSummary to avoid circular imports
+# Import UserSummary with forward reference to avoid circular imports
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from app.schemas.user import UserSummary
+
 class VehicleWithUser(VehicleOut):
-    pass  # Will be updated after UserSummary is available
+    posted_by: "UserSummary"  # Include full user information
+
+# At the end of the file, resolve forward references
+from app.schemas.user import UserSummary
+VehicleWithUser.model_rebuild()
 

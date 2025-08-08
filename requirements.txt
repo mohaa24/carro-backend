@@ -1,8 +1,10 @@
 fastapi
 uvicorn[standard]
 sqlalchemy
-asyncpg
-fastapi-users[sqlalchemy2]
-python-dotenv
-alembic
 aiosqlite
+asyncpg
+python-dotenv
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+pydantic[email]

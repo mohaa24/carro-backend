@@ -1,19 +1,24 @@
-from sqlalchemy import Integer, String, Float, Date, Enum, ForeignKey
+from sqlalchemy import Integer, String, Float, Date, Enum, ForeignKey, JSON, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.sql import func
 from app.db import Base
 import enum
 from typing import List, Optional, TYPE_CHECKING
+from datetime import datetime
 
 if TYPE_CHECKING:
     from app.models.user import User
 
 class VehicleType(str, enum.Enum):
     car = "Car"
-    motorbike = "Motorbike"
+    motorbike = "Motor Bike"
+    threeWheeler = "Three Wheeler"
     truck = "Truck"
+    farm = "Farm"
+    plant = "Plant"
+    electricBike = "Electric Bike"
     van = "Van"
     other = "Other"
-
 
 class FuelType(str, enum.Enum):
     petrol = "Petrol"
@@ -35,10 +40,9 @@ class ImportStatus(str, enum.Enum):
     reconditioned = "Reconditioned"
 
 class VehicleCondition(str, enum.Enum):
-    excellent = "Excellent"
-    good = "Good"
-    fair = "Fair"
-    poor = "Poor"
+    used = "Used"
+    new = "New"
+    reconditioned = "Reconditioned"
 
 class Vehicle(Base):
     __tablename__ = "vehicles"
@@ -64,15 +68,17 @@ class Vehicle(Base):
     engine_size: Mapped[float] = mapped_column(Float)
     doors: Mapped[int] = mapped_column(Integer)
     registration_date: Mapped[Optional[Date]] = mapped_column(Date, nullable=True)  # Registration/customs clearance date
-    tax_due_date: Mapped[Optional[Date]] = mapped_column(Date, nullable=True)
-    insurance_expiry: Mapped[Optional[Date]] = mapped_column(Date, nullable=True)
     location: Mapped[str] = mapped_column(String(255))
     seller_type: Mapped[SellerType] = mapped_column(Enum(SellerType))
     import_status: Mapped[ImportStatus] = mapped_column(Enum(ImportStatus))
     condition: Mapped[VehicleCondition] = mapped_column(Enum(VehicleCondition))
     ownership_history: Mapped[int] = mapped_column(Integer)  # Number of previous owners
     description: Mapped[str] = mapped_column(String(1000))
-    vin: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    features: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)  # Vehicle features/amenities as array
+    
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     # Relationship to user who posted this vehicle
     posted_by = relationship("User", back_populates="vehicles")

@@ -1,11 +1,14 @@
-from sqlalchemy import String, Boolean, Integer, Enum
+from sqlalchemy import String, Boolean, Integer, Enum, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.sql import func
 from app.db import Base
 import enum
 from typing import List, TYPE_CHECKING
+from datetime import datetime
 
 if TYPE_CHECKING:
     from app.models.vehicle import Vehicle
+    from app.models.dealer_profile import DealerProfile
 
 class UserType(str, enum.Enum):
     individual = "Individual"
@@ -29,8 +32,13 @@ class User(Base):
     # Dealership specific fields (only used if user_type is dealership)
     business_name: Mapped[str] = mapped_column(String(255), nullable=True)
     business_registration: Mapped[str] = mapped_column(String(100), nullable=True)
-    phone: Mapped[str] = mapped_column(String(20), nullable=True)
+    phone: Mapped[str] = mapped_column(String(20), nullable=False)  # Now required for all users
     address: Mapped[str] = mapped_column(String(500), nullable=True)
     
-    # Relationship to vehicles
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    # Relationships
     vehicles = relationship("Vehicle", back_populates="posted_by")
+    dealer_profile = relationship("DealerProfile", back_populates="user", uselist=False)  # One-to-one
