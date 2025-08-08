@@ -20,6 +20,18 @@ async def init_database():
         traceback.print_exc()
         return False
 
+async def seed_database():
+    """Seed database with demo data if empty"""
+    try:
+        print("🌱 Checking if database needs seeding...")
+        from seed_db import seed_database as run_seed
+        await run_seed()
+        print("✅ Database seeding completed!")
+        return True
+    except Exception as e:
+        print(f"⚠️ Database seeding failed (continuing anyway): {e}")
+        return False
+
 def main():
     try:
         # Add current directory to Python path
@@ -46,13 +58,18 @@ def main():
         print("🔧 Initializing database...")
         if not asyncio.run(init_database()):
             print("❌ Database initialization failed, but continuing...")
-            # Don't exit - maybe tables already exist
+        
+        # Seed database with demo data (only if empty)
+        print("🌱 Seeding database if needed...")
+        asyncio.run(seed_database())
         
         # Import uvicorn after we know the app works
         print("📦 Importing uvicorn...")
         import uvicorn
         
         print(f"🌐 Starting uvicorn server on 0.0.0.0:{port}")
+        print("🎉 Server ready! Check https://your-app.railway.app/docs for API documentation")
+        
         # Use the imported app object directly instead of string path
         uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
         
