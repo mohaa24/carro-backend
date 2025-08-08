@@ -7,22 +7,32 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+# Fallback for Railway deployment
 if not DATABASE_URL:
-    raise ValueError("DATABASE_URL environment variable is required")
+    print("WARNING: DATABASE_URL not set, using default SQLite")
+    DATABASE_URL = "sqlite+aiosqlite:///./carro.db"
 
-# Configure engine based on database type
-if "sqlite" in DATABASE_URL:
-    # SQLite configuration
-    engine = create_async_engine(DATABASE_URL, echo=True)
-else:
-    # PostgreSQL/MySQL configuration with connection pooling
-    engine = create_async_engine(
-        DATABASE_URL, 
-        echo=True,
-        pool_size=20,
-        max_overflow=0
-    )
+print(f"Using database: {DATABASE_URL}")
 
-async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
+try:
+    # Configure engine based on database type
+    if "sqlite" in DATABASE_URL:
+        # SQLite configuration
+        engine = create_async_engine(DATABASE_URL, echo=False)  # Disable echo for production
+    else:
+        # PostgreSQL/MySQL configuration with connection pooling
+        engine = create_async_engine(
+            DATABASE_URL, 
+            echo=False,  # Disable echo for production
+            pool_size=20,
+            max_overflow=0
+        )
+
+    async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
+    print("✅ Database engine created successfully")
+
+except Exception as e:
+    print(f"❌ Database engine creation failed: {e}")
+    raise
 
 Base = declarative_base()
